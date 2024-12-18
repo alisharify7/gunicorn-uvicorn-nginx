@@ -19,20 +19,20 @@ and automatically it will apply by nginx.
 for configuring the gunicorn environment config map (read here https://docs.gunicorn.org/en/latest/configure.html)
 
 
-### 1.0 Gunicorn:
+### 🦄 1.0 Gunicorn:
 
 Gunicorn (Green Unicorn) is a WSGI (Web Server Gateway Interface) server for Python web applications.
 It acts as a multi-threaded HTTP server that handles requests and passes them to the Python application.
 It's suitable for synchronous Python web frameworks like Flask or Django.
 Gunicorn works by serving multiple worker processes to handle multiple requests simultaneously.
 
-### 2.0 Uvicorn:
+### 🦄 2.0 Uvicorn:
 
 Uvicorn is an ASGI (Asynchronous Server Gateway Interface) server, designed to handle asynchronous web frameworks like FastAPI or Starlette.
 It is ideal for handling long-lived connections and HTTP/2, WebSockets, or other asynchronous protocols, making it more efficient than WSGI servers for certain applications.
 Uvicorn is often used for asynchronous Python web frameworks that require a high degree of concurrency.
 
-### 3.0 Nginx:
+### 🌐 3.0 Nginx:
 
 Nginx is a reverse proxy server and web server. It sits in front of your application server (like Gunicorn or Uvicorn) and handles incoming HTTP requests.
 It serves static files directly (like images, CSS, JavaScript), which reduces the load on your application server.
