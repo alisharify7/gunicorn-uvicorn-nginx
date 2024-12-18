@@ -5,6 +5,20 @@
 
 ### Gunicorn, Uvicorn, and Nginx are often used together in Python web application deployments to ensure efficiency, scalability, and robustness. Here's what each component does:
 
+## 🚧 How to Use
+
+    docker pull ...
+    not implemented yet
+
+## 🔨 Configuration:
+for configuring the nginx you can simply mount a nginx.conf file into
+```bash
+/etc/nginx/conf.d/
+```
+and automatically it will apply by nginx.
+for configuring the gunicorn environment config map (read here https://docs.gunicorn.org/en/latest/configure.html)
+
+
 ### 1.0 Gunicorn:
 
 Gunicorn (Green Unicorn) is a WSGI (Web Server Gateway Interface) server for Python web applications.
