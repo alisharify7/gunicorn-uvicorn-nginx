@@ -63,7 +63,7 @@ for configuring the **gunicorn** use environment config map (read here https://d
 | `GUNICORN_BIND_PORT`    | 8000                                                                                                                                                        | str        | gunicorn bind port                          | 
 | `GUNICORN_CMD_ARGS`     | ```bash"-k uvicorn.workers.UvicornWorker --bind ${GUNICORN_BIND} --workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT}"``` | str        | arg command that gunicorn takes for running | 
 
-### if you want to gunicorn use your starter command instead of the default runner (``GUNICORN_CMD_ARGS``) you can simply override the (``GUNICORN_CMD_ARGS``) env. 
+### if you want to gunicorn uses your starter command instead of the default starter command (``GUNICORN_CMD_ARGS``), you can simply override the (``GUNICORN_CMD_ARGS``) env. 
 ```bash
 exec gunicorn main:app ${GUNICORN_CMD_ARGS} # your command will be replaced here
 ```
