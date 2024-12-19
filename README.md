@@ -47,7 +47,7 @@ server {
     server_name  localhost;
     root         /app;
     
-    # you config goes here
+    # your config goes here
 }
 ```
 
