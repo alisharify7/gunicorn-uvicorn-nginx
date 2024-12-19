@@ -45,13 +45,12 @@ Ensure high availability and load balancing.
 
 for configuring the nginx you can simply mount a nginx.conf file into and it will
 automatically will be added inside the server block
-
 ```bash
 /etc/nginx/conf.d/
 ```
-
 and automatically it will apply by nginx.
-for configuring the gunicorn environment config map (read here https://docs.gunicorn.org/en/latest/configure.html)
+
+for configuring the gunicorn use environment config map (read here https://docs.gunicorn.org/en/latest/configure.html)
 but for some base config you can use following configurations
 
 | key                     | default value                                                                                                                                               | value type | description                                 |
