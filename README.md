@@ -30,8 +30,7 @@ Nginx forwards requests to Gunicorn/Uvicorn, which process the logic and send re
 
 ## 🚧 How to Use
 
-    docker pull ...
-    not implemented yet
+    docker pull alisharify7/gunicorn-uvicorn-nginx
 
 🛑 The root of your project should contain a file named `main.py` and another named `requirements.txt` (dependencies list). 🛑 
 
