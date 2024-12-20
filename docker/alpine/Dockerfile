@@ -17,8 +17,6 @@ WORKDIR /app
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY custom.conf .
 
-
-
 # Copy application files and dependencies
 COPY . .
 COPY requirements.txt .
@@ -26,7 +24,8 @@ COPY start.sh .
 
 RUN apk update && apk add --no-cache python3 py3-pip \
     && pip3 config set global.break-system-packages true \
-    && pip3 install --no-cache-dir gunicorn uvicorn \
+    && python3 -m pip install --upgrade pip \
+    && pip3 install --no-cache-dir gunicorn uvicorn pyfiglet \
     && pip3 install --no-cache-dir -r requirements.txt
 
 
