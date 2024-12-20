@@ -1,5 +1,10 @@
 FROM nginx:latest
 
+LABEL maintainer="alisharify <alisharifyofficial@gmail.com>"
+LABEL version="latest"
+LABEL description="Deploy Python web apps with Docker using Nginx, Gunicorn/Uvicorn for scalability and performance."
+LABEL license="GPL-3.0"
+
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Python environment variables
