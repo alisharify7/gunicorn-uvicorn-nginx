@@ -12,6 +12,7 @@ export GUNICORN_CMD_ARGS="-k uvicorn.workers.UvicornWorker --bind ${GUNICORN_BIN
 
 sed "s|\${GUNICORN_BIND_ADDRESS}|${GUNICORN_BIND_ADDRESS:-127.0.0.1}|g" custom.conf | sed "s|\${GUNICORN_BIND_PORT}|${GUNICORN_BIND_PORT:-8000}|g" > /etc/nginx/conf.d/custom.conf
 rm /app/custom.conf
+rm /app/nginx.conf
 
 nginx -g "daemon off;" &
 sleep 2
