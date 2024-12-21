@@ -2,9 +2,9 @@
 
 These tools are commonly used together to deploy Python web apps efficiently and reliably:
 
-<img src="./docs/flow.png">
+<img src="https://raw.githubusercontent.com/free-programmers/gunicorn-uvicorn-nginx/refs/heads/main/docs/flow.png">
 
- ** all examples are in <a href="./example">here</a> **
+ ** all examples are in <a href="https://github.com/free-programmers/gunicorn-uvicorn-nginx/tree/main/example">here</a> **
 
 ## Gunicorn
     A WSGI server for synchronous frameworks (e.g., Flask, Django).
