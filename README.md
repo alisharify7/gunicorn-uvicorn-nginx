@@ -1,25 +1,20 @@
-# gunicorn-uvicorn-nginx
-
-<img src="https://images.mirror-media.xyz/publication-images/7aStlV9clT-Ff611h53d-.png">
-<img src="https://ucarecdn.com/068cfc2b-7fda-4fcd-afba-f2da0de591b5/-/resize/700/">
-
 # Gunicorn, Uvicorn, and Nginx
 
 These tools are commonly used together to deploy Python web apps efficiently and reliably:
 
+<img src="./docs/flow.png">
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Gunicorn_logo_2010.svg/1024px-Gunicorn_logo_2010.svg.png" style="width: 30%">
+ ** all examples are in <a href="./example">here</a> **
 
+## Gunicorn
     A WSGI server for synchronous frameworks (e.g., Flask, Django).
     Handles multiple HTTP requests with worker processes.
 
-<img src="https://www.uvicorn.org/uvicorn.png" style="width: 15%">
-
+## Uvicorn
     An ASGI server for asynchronous frameworks (e.g., FastAPI, Starlette).
     Ideal for real-time features like WebSockets and high-concurrency apps.
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/c/c5/Nginx_logo.svg" style="width: 25%">
-
+## Nginx
     A reverse proxy that handles HTTP requests, serves static files, and balances traffic between Gunicorn or Uvicorn instances.
     Improves scalability, security, and performance.
 
@@ -27,16 +22,17 @@ These tools are commonly used together to deploy Python web apps efficiently and
 Nginx forwards requests to Gunicorn/Uvicorn, which process the logic and send responses back through Nginx to the client.
 
 
-
-## 🚧 How to Use
-
-    docker pull alisharify7/gunicorn-uvicorn-nginx
+## 🚧 How to Use in Dockerfile
+```dockerfile
+FROM alisharify7/gunicorn-uvicorn-nginx: tag or latest
+```
 
 🛑 The root of your project should contain a file named `main.py` and another named `requirements.txt` (dependencies list). 🛑 
 
 
-## 🔨 Configuration:
+## 🔨 how config each component:
 
+## Nginx
 for configuring the **--nginx--** you can simply mount a nginx.conf file into ```/etc/nginx/conf.d/``` and it will
 automatically will be added inside the server block.
 
@@ -49,7 +45,7 @@ server {
     # your config goes here
 }
 ```
-
+## Gunicorn 
 for configuring the **gunicorn** use environment config map (read here https://docs.gunicorn.org/en/latest/configure.html)
 ### available config mappers: 
 
@@ -67,7 +63,9 @@ for configuring the **gunicorn** use environment config map (read here https://d
 exec gunicorn main:app ${GUNICORN_CMD_ARGS} # your command will be replaced here
 ```
 
-#### example:
+# examples
+
+### basic:
 ```dockerfile
 FROM  alisharify7/gunicorn-uvicorn-nginx:1.0.0
 
@@ -78,4 +76,35 @@ ENV GUNICORN_CMD_ARGS '-k uvicorn.workers.UvicornWorker --log-level=debug'
 
 COPY . .
 COPY requirements.txt .
+```
+
+### gunicorn config option:
+```dockerfile
+FROM  alisharify7/gunicorn-uvicorn-nginx:alpine-1.0.0
+
+# change gunicorn config
+ENV GUNICORN_WORKERS 4
+ENV GUNICORN_THREADS 4
+ENV GUNICORN_TIMEOUT 60
+ENV GUNICORN_BIND_PORT 6565
+ENV GUNICORN_BIND_ADDRESS 0.0.0.0
+
+# or you can change gunicorn starter command totally
+# ENV GUNICORN_CMD_ARGS="-k uvicorn.workers.UvicornWorker --bind 127.0.0.1 --workers 2 --threads 2 --timeout 55 --log-level=info"
+# if this env is provided the all other env config will be overided and ignored
+
+
+WORKDIR /app
+COPY requirements.txt .
+COPY . .
+```
+### nginx config:
+```dockerfile
+FROM  alisharify7/gunicorn-uvicorn-nginx:alpine-1.0.0
+
+COPY add_header.conf /etc/nginx/conf.d/
+
+WORKDIR /app
+COPY requirements.txt .
+COPY . .
 ```
