@@ -21,18 +21,17 @@ WORKDIR /app
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY custom.conf .
-
-# Copy application files and dependencies
-COPY . .
 COPY requirements.txt .
-COPY start.sh .
+COPY . .
+
+COPY start.sh /opt/start.sh
 
 RUN apk update && apk add --no-cache python3 py3-pip \
     && pip3 config set global.break-system-packages true \
     && python3 -m pip install --upgrade pip \
-    && pip3 install --no-cache-dir gunicorn uvicorn pyfiglet \
+    && pip3 install --no-cache-dir --upgrade gunicorn uvicorn pyfiglet \
     && pip3 install --no-cache-dir -r requirements.txt
 
 
 EXPOSE 80
-CMD ["sh", "start.sh"]
+CMD ["sh", "/opt/start.sh"]
