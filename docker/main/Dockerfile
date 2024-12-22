@@ -29,7 +29,7 @@ COPY start.sh .
 RUN apt-get update && apt-get install python3 python3-pip -y \
     && pip3 config set global.break-system-packages true \
     && python3 -m pip install --upgrade pip \
-    && pip3 install --no-cache-dir gunicorn uvicorn pyfiglet \
+    && pip3 install --no-cache-dir --upgrade gunicorn uvicorn pyfiglet \
     && pip3 install --no-cache-dir -r requirements.txt
 
 EXPOSE 80

@@ -19,10 +19,10 @@ ENV GUNICORN_TIMEOUT 120
 # Set working directory
 WORKDIR /app
 
+COPY . .
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY custom.conf .
 COPY requirements.txt .
-COPY . .
 
 COPY start.sh /opt/start.sh
 
