@@ -1,4 +1,4 @@
-FROM  alisharify7/gunicorn-uvicorn-nginx:alpine-1.0.0
+FROM alisharify7/gunicorn-uvicorn-nginx:alpine-1.0.0
 
 
 # change gunicorn config
@@ -14,6 +14,6 @@ ENV GUNICORN_BIND_ADDRESS 0.0.0.0
 
 
 WORKDIR /app
-COPY requirements.txt .
 COPY . .
+COPY requirements.txt .
 
