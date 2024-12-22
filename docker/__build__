@@ -1,0 +1,1 @@
+docker build -t alisharify7/gunicorn-uvicorn-nginx:{{}} -t alisharify7/gunicorn-uvicorn-nginx:{{tag}}.

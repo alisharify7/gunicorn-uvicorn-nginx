@@ -6,4 +6,4 @@ COPY add_header.conf /etc/nginx/conf.d/
 WORKDIR /app
 COPY requirements.txt .
 COPY . .
-
+RUN pip3 install -r requirements.txt

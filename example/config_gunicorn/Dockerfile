@@ -16,4 +16,4 @@ ENV GUNICORN_BIND_ADDRESS 0.0.0.0
 WORKDIR /app
 COPY . .
 COPY requirements.txt .
-
+RUN pip3 install -r requirements.txt
