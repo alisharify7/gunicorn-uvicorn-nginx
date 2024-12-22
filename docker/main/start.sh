@@ -1,6 +1,9 @@
 #!/bin/sh
 
 set -e
+if [ -z "${INSTALL_PACKAGES}" ]; then
+  pip3 install --no-cache-dir -r /app/requirements.txt;
+fi
 
 python3 -c "import pyfiglet; message = 'gunicorn\nuvicorn\nnginx';pyfiglet.print_figlet(text=message, colors='GREEN');print(f'\nRepo: https://github.com/free-programmers/gunicorn-uvicorn-nginx/\n');"
 
@@ -24,14 +27,11 @@ if [ -z "${GUNICORN_CMD_ARGS}" ]; then
     echo ""
 fi
 
-sed "s|\${GUNICORN_BIND_ADDRESS}|${GUNICORN_BIND_ADDRESS:-127.0.0.1}|g" custom.conf | sed "s|\${GUNICORN_BIND_PORT}|${GUNICORN_BIND_PORT:-8000}|g" > /etc/nginx/conf.d/custom.conf
+sed "s|\${GUNICORN_BIND_ADDRESS}|${GUNICORN_BIND_ADDRESS:-127.0.0.1}|g" /app/custom.conf | sed "s|\${GUNICORN_BIND_PORT}|${GUNICORN_BIND_PORT:-8000}|g" > /etc/nginx/conf.d/custom.conf
 rm /app/custom.conf
-rm /app/nginx.conf
 
 nginx -g "daemon off;" &
 sleep 2
-
-
 
 # Start Gunicorn
 exec gunicorn main:app ${GUNICORN_CMD_ARGS}
