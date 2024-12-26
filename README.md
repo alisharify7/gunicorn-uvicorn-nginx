@@ -76,6 +76,7 @@ ENV GUNICORN_CMD_ARGS '-k uvicorn.workers.UvicornWorker --log-level=debug'
 
 COPY . .
 COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 ```
 
 ### gunicorn config option:
@@ -96,6 +97,7 @@ ENV GUNICORN_BIND_ADDRESS 0.0.0.0
 
 WORKDIR /app
 COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 COPY . .
 ```
 ### nginx config:
@@ -106,5 +108,6 @@ COPY add_header.conf /etc/nginx/conf.d/
 
 WORKDIR /app
 COPY requirements.txt .
+RUN pip3 install -r requirements.txt
 COPY . .
 ```
