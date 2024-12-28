@@ -65,15 +65,11 @@ exec gunicorn main:app ${GUNICORN_CMD_ARGS} # your command will be replaced here
 
 # examples
 
-### basic:
+### simplest docker file:
 ```dockerfile
 FROM  alisharify7/gunicorn-uvicorn-nginx:1.0.0
 
 WORKDIR /app
-ENV GUNICORN_CMD_ARGS '-k uvicorn.workers.UvicornWorker --log-level=debug'
-# this will be following command inside the container 
-# gunicorn main:app -k uvicorn.workers.UvicornWorker --log-level=debug
-
 COPY . .
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
