@@ -21,7 +21,6 @@ WORKDIR /app
 
 COPY . .
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY custom.conf .
 COPY requirements.txt .
 
 COPY start.sh /opt/start.sh
