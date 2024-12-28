@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+
 if [ -z "${INSTALL_PACKAGES}" ]; then
   pip3 install --no-cache-dir -r /app/requirements.txt;
 fi
@@ -31,6 +32,7 @@ sed "s|\${GUNICORN_BIND_ADDRESS}|${GUNICORN_BIND_ADDRESS:-127.0.0.1}|g" /app/cus
 rm /app/custom.conf
 rm /app/nginx.conf
 
+sleep 2
 nginx -g "daemon off;" &
 sleep 2
 

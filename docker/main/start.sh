@@ -31,6 +31,7 @@ sed "s|\${GUNICORN_BIND_ADDRESS}|${GUNICORN_BIND_ADDRESS:-127.0.0.1}|g" /app/cus
 rm /app/custom.conf
 rm /app/nginx.conf
 
+sleep 2
 nginx -g "daemon off;" &
 sleep 2
 
