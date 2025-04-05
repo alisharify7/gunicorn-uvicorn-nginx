@@ -107,3 +107,11 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 COPY . .
 ```
+
+
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=alisharify7/gunicorn-uvicorn-nginx&type=Date)](https://star-history.com/#alisharify7/gunicorn-uvicorn-nginx&Date)
+
+
