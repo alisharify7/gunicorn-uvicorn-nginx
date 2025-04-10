@@ -5,6 +5,7 @@ LABEL version="latest"
 LABEL description="Deploy Python web apps with Docker using Nginx, Gunicorn/Uvicorn for scalability and performance."
 LABEL license="GPL-3.0"
 
+# delete nginx default config
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Python environment variables
@@ -16,6 +17,8 @@ ENV GUNICORN_WORKERS 2
 ENV GUNICORN_THREADS 4
 ENV GUNICORN_TIMEOUT 120
 
+# TODO: add user for running app without root permissions
+
 # Set working directory
 WORKDIR /app
 
@@ -23,7 +26,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy application files and dependencies
 COPY . .
-COPY requirements.txt .
+COPY requirements.txt /app/requirements.txt
 COPY start.sh .
 
 RUN apt-get update && apt-get install python3 python3-pip -y \

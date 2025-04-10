@@ -5,6 +5,7 @@ LABEL version="alpine-latest"
 LABEL description="Deploy Python web apps with Docker using Nginx, Gunicorn/Uvicorn for scalability and performance."
 LABEL license="GPL-3.0"
 
+# delete default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Python environment variables
@@ -16,12 +17,14 @@ ENV GUNICORN_WORKERS 2
 ENV GUNICORN_THREADS 4
 ENV GUNICORN_TIMEOUT 120
 
+# TODO: add a user to run script without root user 
+
 # Set working directory
 WORKDIR /app
 
 COPY . .
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY requirements.txt .
+COPY requirements.txt /app/requirements.txt
 
 COPY start.sh /opt/start.sh
 
@@ -30,7 +33,6 @@ RUN apk update && apk add --no-cache python3 py3-pip \
     && python3 -m pip install --upgrade pip \
     && pip3 install --no-cache-dir --upgrade gunicorn uvicorn pyfiglet \
     && pip3 install --no-cache-dir -r requirements.txt
-
 
 EXPOSE 80
 CMD ["sh", "/opt/start.sh"]
