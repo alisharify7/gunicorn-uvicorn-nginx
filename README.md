@@ -27,8 +27,8 @@ Nginx forwards requests to Gunicorn/Uvicorn, which process the logic and send re
 FROM alisharify7/gunicorn-uvicorn-nginx: tag or latest
 ```
 
-🛑 The root of your project should contain a file named `main.py` and another named `requirements.txt` (dependencies list). 🛑 
-
+🛑 The root of your project should contain a file named `main.py` and another file called `requirements.txt` (dependencies list). 🛑 
+in `main.py` should app module exists! (main:app).
 
 ## 🔨 how config each component:
 
@@ -42,7 +42,7 @@ server {
     server_name  localhost;
     root         /app;
     
-    # your config goes here
+    # your config 
 }
 ```
 ## Gunicorn 
@@ -60,7 +60,7 @@ for configuring the **gunicorn** use environment config map (read here https://d
 
 ### if you want to gunicorn uses your starter command instead of the default starter command (``GUNICORN_CMD_ARGS``), you can simply override the (``GUNICORN_CMD_ARGS``) env. 
 ```bash
-exec gunicorn main:app ${GUNICORN_CMD_ARGS} # your command will be replaced here
+exec gunicorn main:app ${GUNICORN_CMD_ARGS} 
 ```
 
 # examples
