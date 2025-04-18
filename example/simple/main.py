@@ -1,3 +1,12 @@
+"""
+* gunicorn-uvicorn-nginx
+* author: @alisharify7
+* email: alisharifyofficial@gmail.com
+* Copyright (c) 2025 - ali sharifi
+* license: see LICENSE for more details.
+* https://github.com/alisharify7/gunicorn-uvicorn-nginx
+"""
+
 from fastapi import FastAPI
 app = FastAPI()
 
