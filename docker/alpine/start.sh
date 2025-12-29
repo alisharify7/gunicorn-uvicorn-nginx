@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# TODO: make script available and runnable on all linux Distros
 set -e
 
 if [ -z "${INSTALL_PACKAGES}" ]; then

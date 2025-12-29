@@ -17,7 +17,7 @@ ENV GUNICORN_WORKERS 2
 ENV GUNICORN_THREADS 4
 ENV GUNICORN_TIMEOUT 120
 
-# TODO: add a user to run script without root user 
+# TODO: add a user to run script without root user -- A
 
 # Set working directory
 WORKDIR /app
