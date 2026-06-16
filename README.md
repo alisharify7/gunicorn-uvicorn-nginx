@@ -6,6 +6,10 @@ These tools are commonly used together to deploy Python web apps efficiently and
 
  ** all examples are in <a href="https://github.com/free-programmers/gunicorn-uvicorn-nginx/tree/main/example">here</a> **
 
+
+## How it works:
+Nginx forwards requests to Gunicorn/Uvicorn, which process the logic and send responses back through Nginx to the client.
+
 ## Gunicorn
     A WSGI server for synchronous frameworks (e.g., Flask, Django).
     Handles multiple HTTP requests with worker processes.
@@ -18,11 +22,7 @@ These tools are commonly used together to deploy Python web apps efficiently and
     A reverse proxy that handles HTTP requests, serves static files, and balances traffic between Gunicorn or Uvicorn instances.
     Improves scalability, security, and performance.
 
-## ❓ How it works:
-Nginx forwards requests to Gunicorn/Uvicorn, which process the logic and send responses back through Nginx to the client.
-
-
-## 🚧 How to Use in Dockerfile
+## How to Use in Dockerfile
 ```dockerfile
 FROM alisharify7/gunicorn-uvicorn-nginx: tag or latest
 ```
@@ -30,7 +30,7 @@ FROM alisharify7/gunicorn-uvicorn-nginx: tag or latest
 🛑 The root of your project should contain a file named `main.py` and another file called `requirements.txt` (dependencies list). 🛑 
 in `main.py` should app module exists! (main:app).
 
-## 🔨 how config each component:
+## how config each component:
 
 ## Nginx
 for configuring the **--nginx--** you can simply mount a nginx.conf file into ```/etc/nginx/conf.d/``` and it will
