@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Static Files Example</title>
+    <style>
+        body { font-family: Arial; margin: 50px; }
+        .container { max-width: 600px; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FastAPI + Static Files Example</h1>
+        <p>This app serves static HTML files with a FastAPI backend.</p>
+        <button onclick="checkHealth()">Check Health</button>
+        <p id="result"></p>
+    </div>
+    
+    <script>
+        function checkHealth() {
+            fetch('/api/health')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('result').innerText = 
+                        'Status: ' + data.status;
+                });
+        }
+    </script>
+</body>
+</html>
