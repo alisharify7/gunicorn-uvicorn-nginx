@@ -1,113 +1,193 @@
-# Gunicorn + Uvicorn + Nginx Docker Image
+# Gunicorn + Uvicorn + Nginx
 
-Two Docker base images for serving Python applications through Nginx and Gunicorn.
-ASGI applications use the maintained `uvicorn-worker` package by default; WSGI
-applications can explicitly select a standard Gunicorn worker.
+Reusable Docker base images for running Python web applications behind Nginx and
+Gunicorn. ASGI applications use Uvicorn workers by default; WSGI applications can
+select a standard Gunicorn worker.
 
 ```text
-client -> Nginx :80 -> Gunicorn 127.0.0.1:8000 -> main:app
+client -> Nginx :80 -> Gunicorn 127.0.0.1:8000 -> your application
 ```
 
-This all-in-one layout is intended for a single host or a simple Docker Compose
-deployment. In Kubernetes and similar orchestrators, prefer one application process
-per container and a platform-managed ingress or reverse proxy.
+This image is a practical fit for a single server, Docker Compose, or other simple
+deployments where keeping Nginx and the Python application in one container is useful.
+For Kubernetes and similar orchestrators, separate application and ingress containers
+are usually a better fit.
 
-## Build the base images
+> [!IMPORTANT]
+> As verified on 2026-09-01, the Docker Hub aliases still contain the legacy v1
+> images and do not yet provide the source contract documented here. Build from source
+> until this revision is published, then verify the remote tag or digest before use.
 
-The repository contains two build contexts:
+## Choose an image
 
-| Target | Base image | Local tag |
+| Variant | Published alias after refresh | Base image |
 | --- | --- | --- |
-| `main` | `nginx:1.30.4-trixie` | `gunicorn-uvicorn-nginx:main-test` |
-| `alpine` | `nginx:1.30.4-alpine3.24` | `gunicorn-uvicorn-nginx:alpine-test` |
+| Debian | `alisharify7/gunicorn-uvicorn-nginx:latest` | `nginx:1.30.4-trixie` |
+| Alpine | `alisharify7/gunicorn-uvicorn-nginx:alpine-latest` | `nginx:1.30.4-alpine3.24` |
 
-Build both images with Docker Buildx Bake:
+Source and image releases happen independently, so moving aliases can lag behind this
+repository. Check the tag and digest on
+[Docker Hub](https://hub.docker.com/r/alisharify7/gunicorn-uvicorn-nginx/tags) before
+deploying. For production, prefer a verified versioned tag or digest. If a matching
+release has not been published yet, [build the base image from source](#build-from-source).
 
-```sh
-./docker/build.sh
+## Quick start: FastAPI
+
+Create these three files:
+
+```text
+my-app/
+├── Dockerfile
+├── main.py
+└── requirements.txt
 ```
 
-The helper adds `--load`, so the resulting tags are available to the local Docker
-daemon even when Buildx uses the `docker-container` driver. Build one target or use a
-context directly:
+`main.py`:
 
-```sh
-./docker/build.sh main
-docker build -t gunicorn-uvicorn-nginx:main-test docker/main
-docker build -t gunicorn-uvicorn-nginx:alpine-test docker/alpine
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello from FastAPI"}
 ```
 
-Builds require Docker daemon access and network access to the base-image and Python
-package registries.
+`requirements.txt`:
 
-## Quick start
+```text
+fastapi==0.141.1
+```
 
-A consumer image must install its dependencies at build time and copy an importable
-application into `/app`. This example uses the locally built Debian image:
+`Dockerfile`:
 
 ```dockerfile
-ARG BASE_IMAGE=gunicorn-uvicorn-nginx:main-test
+ARG BASE_IMAGE=alisharify7/gunicorn-uvicorn-nginx:latest
 FROM ${BASE_IMAGE}
 
 WORKDIR /app
+
 COPY requirements.txt ./
 RUN python -m pip install --no-cache-dir -r requirements.txt
-COPY . ./
+
+COPY main.py ./
 ```
 
-The default application target is `main:app`, and the default worker expects an ASGI
-application.
+Build and run the application:
 
 ```sh
-docker build -t my-app .
-docker run --rm -p 8080:80 my-app
+docker build -t my-fastapi-app .
+docker run --rm --name my-fastapi-app -p 8080:80 my-fastapi-app
+```
+
+Open <http://127.0.0.1:8080/> or test it from another terminal:
+
+```sh
 curl --fail http://127.0.0.1:8080/
 ```
 
-To consume a published image after this revision has been released, set
-`BASE_IMAGE` to its immutable release tag or digest.
+Application dependencies are installed while the consumer image is built. Container
+startup never runs `pip` and does not contact a package registry.
 
-### Published tag status
+### Use the Alpine variant
 
-The source tree is the runtime source of truth. As verified on 2026-09-01, Docker Hub
-contains the older tags `latest`, `1.0.0`, `alpine-latest`, and `alpine-1.0.0`; those
-images predate the runtime described here and must be republished before they can be
-used with this contract. There is no published `alpine` tag. The example Dockerfiles
-use the existing moving aliases as defaults but accept `--build-arg BASE_IMAGE=...`
-so tests can use freshly built local images.
+Override the base image during the consumer build:
 
-## Runtime contract
+```sh
+docker build \
+  --build-arg BASE_IMAGE=alisharify7/gunicorn-uvicorn-nginx:alpine-latest \
+  -t my-fastapi-app:alpine \
+  .
+```
 
-- `/app` is the working directory.
-- `APP_MODULE` defaults to `main:app` and must resolve inside the consumer image.
-- Nginx listens on port 80 and proxies to `127.0.0.1:8000` by default.
-- The image installs only its pinned server stack. Application dependencies belong in
-  the derived image.
-- Startup never runs `pip` or contacts a package index.
-- The bundled `/app/main.py` is a dependency-free ASGI smoke application. Consumers
-  are expected to replace it.
+## Build from source
 
-## Application server configuration
+Build both base variants from the checked-out source:
 
-| Variable | Default | Description |
+```sh
+git clone https://github.com/alisharify7/gunicorn-uvicorn-nginx.git
+cd gunicorn-uvicorn-nginx
+./docker/build.sh
+```
+
+This creates:
+
+```text
+gunicorn-uvicorn-nginx:main-test
+gunicorn-uvicorn-nginx:alpine-test
+```
+
+Use one of those local tags when building your application:
+
+```sh
+docker build \
+  --build-arg BASE_IMAGE=gunicorn-uvicorn-nginx:main-test \
+  -t my-fastapi-app \
+  ./path/to/my-app
+```
+
+Build only one variant if needed:
+
+```sh
+./docker/build.sh main
+./docker/build.sh alpine
+```
+
+Docker, Docker Buildx, daemon access, and network access to image and Python package
+registries are required.
+
+## Application layout
+
+The container working directory is `/app`. By default, Gunicorn imports `app` from
+`/app/main.py` using the application URI `main:app`.
+
+For a different layout, set `APP_MODULE` in the consumer Dockerfile. For example,
+`/app/src/api.py` containing `app` uses:
+
+```dockerfile
+ENV APP_MODULE=src.api:app
+```
+
+Do not replace the base image `CMD` unless you intentionally want to bypass its Nginx
+and Gunicorn supervisor.
+
+## WSGI applications
+
+The default worker is ASGI-only. Flask, Django WSGI, and other WSGI applications must
+select a compatible worker:
+
+```dockerfile
+ENV GUNICORN_WORKER_CLASS=gthread \
+    GUNICORN_WORKERS=2 \
+    GUNICORN_THREADS=4
+```
+
+The [`example/flask_app/`](example/flask_app/) directory contains a working Flask
+consumer image.
+
+## Configuration
+
+| Variable | Default | Purpose |
 | --- | --- | --- |
-| `APP_MODULE` | `main:app` | Python application URI passed separately to Gunicorn |
-| `GUNICORN_WORKER_CLASS` | `uvicorn_worker.UvicornWorker` | Worker used when arguments are generated |
-| `GUNICORN_WORKERS` | `2` | Generated worker count; must be greater than zero |
-| `GUNICORN_THREADS` | `4` | Generated thread count, used only for the exact `gthread` worker |
-| `GUNICORN_TIMEOUT` | `120` | Generated Gunicorn worker-silence timeout in seconds; `0` is allowed |
-| `GUNICORN_BIND_ADDRESS` | `127.0.0.1` | Generated Gunicorn listener address |
-| `GUNICORN_BIND_PORT` | `8000` | Generated Gunicorn listener port |
-| `NGINX_UPSTREAM_ADDRESS` | `127.0.0.1` | Address used by Nginx's upstream proxy |
-| `NGINX_UPSTREAM_PORT` | `GUNICORN_BIND_PORT` | Upstream port when it is not explicitly set |
-| `GUNICORN_CMD_ARGS` | generated | Non-empty value replaces all generated Gunicorn flags |
+| `APP_MODULE` | `main:app` | Gunicorn application URI |
+| `GUNICORN_WORKER_CLASS` | `uvicorn_worker.UvicornWorker` | Worker used for generated Gunicorn arguments |
+| `GUNICORN_WORKERS` | `2` | Worker process count |
+| `GUNICORN_THREADS` | `4` | Thread count, emitted only for the exact `gthread` worker |
+| `GUNICORN_TIMEOUT` | `120` | Gunicorn worker-silence timeout in seconds; `0` disables it |
+| `GUNICORN_BIND_ADDRESS` | `127.0.0.1` | Internal Gunicorn listener address |
+| `GUNICORN_BIND_PORT` | `8000` | Internal Gunicorn listener port |
+| `NGINX_UPSTREAM_ADDRESS` | `127.0.0.1` | Address Nginx proxies to |
+| `NGINX_UPSTREAM_PORT` | value of `GUNICORN_BIND_PORT` | Port Nginx proxies to when not explicitly set |
+| `GUNICORN_CMD_ARGS` | generated | Complete custom Gunicorn flags when non-empty |
 
-Empty environment values fall back to the defaults. When `GUNICORN_CMD_ARGS` is
-non-empty, Gunicorn parses the string itself, including quoted values. It does not
-replace `APP_MODULE`.
+Empty values fall back to the defaults. Numeric values and ports are validated before
+either service starts.
 
-If custom arguments change `--bind`, independently align
-`NGINX_UPSTREAM_ADDRESS` and `NGINX_UPSTREAM_PORT`:
+A non-empty `GUNICORN_CMD_ARGS` replaces the generated worker, bind, worker-count,
+thread, and timeout flags. It does not replace `APP_MODULE`. If custom arguments
+change the Gunicorn bind, align the Nginx upstream too:
 
 ```dockerfile
 ENV APP_MODULE=src.api:app \
@@ -116,152 +196,99 @@ ENV APP_MODULE=src.api:app \
     NGINX_UPSTREAM_PORT=9000
 ```
 
-Addresses may be hostnames, IPv4 addresses, or unbracketed IPv6 addresses. Ports and
-generated numeric settings are validated before either service starts.
+## Nginx customization
 
-### WSGI applications
+Two extension locations are available:
 
-The default worker is ASGI-only. Flask and other WSGI applications must select a
-compatible Gunicorn worker:
-
-```dockerfile
-ENV GUNICORN_WORKER_CLASS=gthread \
-    GUNICORN_WORKERS=2 \
-    GUNICORN_THREADS=4
-```
-
-The Flask example under `example/flask_app/` is built and exercised by the smoke
-suite.
-
-## Nginx configuration
-
-The image deliberately exposes two configuration scopes:
-
-| Path | Nginx context | Suitable content |
+| Path | Nginx context | Use it for |
 | --- | --- | --- |
 | `/etc/nginx/conf.d/*.conf` | `http` | `map`, `upstream`, or complete `server {}` blocks |
-| `/etc/nginx/server.d/*.conf` | Built-in `server` | Server directives and additional `location` blocks |
+| `/etc/nginx/server.d/*.conf` | Built-in server | Headers, server directives, and additional `location` blocks |
 
-For example, a derived image can add a response header to the built-in server:
+For example, add a response header to the built-in server:
 
 ```nginx
-add_header X-Example-Config "enabled" always;
+add_header X-My-App "enabled" always;
 ```
 
 ```dockerfile
-COPY add_header.conf /etc/nginx/server.d/
+COPY add_header.conf /etc/nginx/server.d/add_header.conf
 ```
 
-The image-owned proxy template is
-`/opt/gunicorn-uvicorn-nginx/custom.conf`. Startup substitutes the Nginx upstream
-address and port, writes `/etc/nginx/server.d/default.conf`, and runs `nginx -t`
-before launching the services. A readable `/app/custom.conf` still takes precedence
-for backward compatibility and produces a deprecation warning; derived images should
-replace the image-owned template instead.
+Do not name a server snippet `default.conf`; startup owns and rewrites that file. Do
+not mount the entire `/etc/nginx/server.d` directory read-only because startup must
+write its rendered proxy configuration there.
 
-The built-in proxy supports HTTP/1.1 and WebSocket upgrades. Request and response
-buffering are enabled. An application can return `X-Accel-Buffering: no` for an SSE or
-streaming response. Proxy connect, send, and read timeouts are 5, 120, and 120 seconds;
-replace the template when an application needs different proxy timing.
+To replace the built-in proxy behavior, copy a server-scope template over:
 
-Hidden paths are denied except `/.well-known/`, which remains available to application
-routes such as OpenID Connect discovery. To serve ACME challenge files directly from
-Nginx, add a more specific `location ^~ /.well-known/acme-challenge/` in a
-server-scope snippet.
+```dockerfile
+COPY custom.conf /opt/gunicorn-uvicorn-nginx/custom.conf
+```
 
-Nginx intentionally derives `X-Forwarded-Proto` and `X-Forwarded-Port` from its direct
-connection instead of trusting client-supplied headers. When the container is behind a
-trusted TLS-terminating proxy, replace the server template with a policy that trusts
-forwarded headers only from that proxy; otherwise the application will see the
-internal `http`/`80` connection.
+The template must retain these literal placeholders:
 
-## Lifecycle and health check
+```text
+${NGINX_UPSTREAM_ADDRESS}
+${NGINX_UPSTREAM_PORT}
+```
 
-`start.sh` remains PID 1 and supervises both Gunicorn and Nginx. An unexpected exit
-from either child stops its peer and makes the container exit non-zero. On `TERM`,
-`INT`, or `QUIT`, the supervisor asks Gunicorn to terminate gracefully and sends
-Nginx `QUIT`, then reaps both children. `HUP` reloads both services.
+It must contain directives or `location` blocks, not another `server {}` block. The
+legacy `/app/custom.conf` override still works but is deprecated.
 
-The Docker health check opens TCP connections to Nginx and the configured upstream.
-It verifies that both listeners accept connections, but it is not an application-level
-readiness check and does not prove that external dependencies are healthy.
+Operational defaults:
+
+- HTTP/1.1 and WebSocket upgrades are supported.
+- `client_max_body_size` is `250m`.
+- Proxy connect/send/read timeouts are fixed at `5s`/`120s`/`120s` unless the
+  template is replaced.
+- Request and response buffering are enabled. An application can return
+  `X-Accel-Buffering: no` for SSE or streaming responses.
+- Hidden paths are denied, while application-owned `/.well-known/` routes remain
+  reachable.
+- Client-supplied forwarding headers are not trusted. Behind a trusted
+  TLS-terminating proxy, provide an explicit trusted-proxy policy in the template.
+
+## Lifecycle and health
+
+The image entrypoint remains PID 1 and supervises both Gunicorn and Nginx. If either
+service exits unexpectedly, its peer is stopped and the container exits non-zero.
+`TERM`, `INT`, and `QUIT` trigger graceful shutdown; `HUP` reloads both services.
+Restart the container after changing the proxy template because `HUP` does not render
+it again.
+
+The Docker health check verifies that the Nginx and Gunicorn TCP listeners accept
+connections. It is not an HTTP readiness check and does not verify databases, queues,
+or other application dependencies.
 
 ## Examples
 
-Every example accepts a `BASE_IMAGE` build argument. Build the base images first, then
-exercise an example against the exact local source revision:
-
-```sh
-docker build \
-  --build-arg BASE_IMAGE=gunicorn-uvicorn-nginx:alpine-test \
-  -t gunicorn-example \
-  example/simple
-docker run --rm -p 8080:80 gunicorn-example
-curl --fail http://127.0.0.1:8080/
-```
-
-| Directory | Demonstrates | Local base |
+| Directory | Demonstrates | Base variant |
 | --- | --- | --- |
 | [`example/simple/`](example/simple/) | Minimal FastAPI application | Alpine |
-| [`example/fastapi_app/`](example/fastapi_app/) | Validation and create/read/delete routes with process-local storage | Debian |
-| [`example/flask_app/`](example/flask_app/) | Flask with Gunicorn's `gthread` WSGI worker | Alpine |
-| [`example/config_gunicorn/`](example/config_gunicorn/) | Four ASGI workers and an aligned internal port of 6565 | Alpine |
-| [`example/config_nginx/`](example/config_nginx/) | A server-scope response-header snippet | Alpine |
-| [`example/static_files/`](example/static_files/) | FastAPI HTML response and mounted static files | Debian |
+| [`example/fastapi_app/`](example/fastapi_app/) | Validation and create/read/delete routes | Debian |
+| [`example/flask_app/`](example/flask_app/) | Flask with the `gthread` WSGI worker | Alpine |
+| [`example/config_gunicorn/`](example/config_gunicorn/) | Worker tuning and a custom internal port | Alpine |
+| [`example/config_nginx/`](example/config_nginx/) | A server-scope Nginx header | Alpine |
+| [`example/static_files/`](example/static_files/) | FastAPI HTML and static files | Debian |
 
-The FastAPI and Flask examples use process-local lists. They deliberately run one
-worker where consistency matters; production deployments should use shared durable
-storage before increasing the worker count.
+Example Dockerfiles accept a `BASE_IMAGE` build argument. When testing a source
+checkout, override it with the corresponding freshly built local image.
 
-## Validation
+## Limitations
 
-Fast checks require POSIX `sh` and Python 3. ShellCheck is used when available and is
-required in CI:
-
-```sh
-./tests/static.sh
-```
-
-Full smoke tests require Docker, `curl`, Python 3, daemon access, and network access
-when an image must be built:
-
-```sh
-./tests/docker-smoke.sh main
-./tests/docker-smoke.sh alpine
-```
-
-Reuse the locally built Bake images and also test all examples:
-
-```sh
-./tests/docker-smoke.sh main gunicorn-uvicorn-nginx:main-test
-./tests/docker-smoke.sh alpine gunicorn-uvicorn-nginx:alpine-test
-./tests/examples-smoke.sh main gunicorn-uvicorn-nginx:main-test
-./tests/examples-smoke.sh alpine gunicorn-uvicorn-nginx:alpine-test
-```
-
-The base-image smoke suite covers exact fallback HTTP output, Docker health status,
-offline startup, graceful shutdown, symmetric Gunicorn/Nginx supervision, invalid
-configuration rejection, custom Gunicorn arguments, `HUP` reloads, `QUIT` shutdown,
-WSGI `gthread`, both Nginx extension scopes, legacy `/app/custom.conf`,
-application-owned `/.well-known/` routes, and a WebSocket upgrade/echo/close lifecycle.
-CI builds both variants and runs their corresponding examples.
-
-## Intentional limitations
-
-- Nginx binds privileged port 80. Its master process and Gunicorn start as root;
-  Nginx workers drop to the image's `nginx` user, but the container is not fully
-  non-root.
-- Base tags and Python server packages are pinned, but base images are not
-  digest-locked. Rebuilds can therefore pick up a changed manifest for the same tag.
-- The health check is listener-level, not application-level readiness.
+- Gunicorn and the Nginx master start as root; only Nginx workers drop privileges.
+- The image runs two supervised services in one container.
+- Base image tags are pinned but not digest-locked.
 - TLS termination, persistent application data, and external-service supervision are
-  outside the image's scope.
-- Worker counts, request limits, buffering, and timeouts are safe starting points, not
-  universal performance settings. Tune them with representative load tests.
+  outside the image.
+- Proxy settings and worker defaults are starting points; tune them with realistic
+  load tests.
 
-## References
+## Development and maintenance
 
-- [Gunicorn documentation](https://gunicorn.org/)
-- [Uvicorn deployment documentation](https://www.uvicorn.org/deployment/)
-- [Nginx documentation](https://nginx.org/en/docs/)
-- [Docker build best practices](https://docs.docker.com/build/building/best-practices/)
+Building, testing, changing, and publishing the base images is documented in the
+[maintainer guide](README-DEV.md).
+
+## License
+
+[GPL-3.0](LICENSE)
