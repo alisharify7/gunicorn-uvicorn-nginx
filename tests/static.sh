@@ -154,7 +154,7 @@ for public_markdown in README.md README-DEV.md; do
     if [ -n "$markdown_links" ]; then
         invalid_markdown_links=$(
             printf '%s\n' "$markdown_links" |
-                grep -Ev '^\]\((\./)?README(-DEV)?\.md([#?][^)]*)?\)$' || :
+                grep -Ev '^\]\(((\./)?README(-DEV)?\.md|https?://[^)]*\.md)([#?][^)]*)?\)$' || :
         )
         if [ -n "$invalid_markdown_links" ]; then
             printf 'Invalid Markdown links in %s:\n%s\n' \
@@ -181,11 +181,11 @@ if [ "$actual_public_markdown" != "$expected_public_markdown" ]; then
 fi
 
 assert_contains \
-    '\]\((\./)?README-DEV\.md([#?][^)]*)?\)' \
+    '\]\(((\./)?|https?://[^)]*/)README-DEV\.md([#?][^)]*)?\)' \
     README.md \
     'README.md must link to the maintainer guide'
 assert_contains \
-    '\]\((\./)?README\.md([#?][^)]*)?\)' \
+    '\]\(((\./)?|https?://[^)]*/)README\.md([#?][^)]*)?\)' \
     README-DEV.md \
     'README-DEV.md must link back to the user guide'
 pass 'public Markdown policy'
