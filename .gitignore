@@ -166,6 +166,7 @@ cython_debug/
 /.agents/
 /.codex/
 
-# Publish only the repository's root README from Markdown documentation.
+# Publish only the root user and maintainer guides.
 *.md
 !/README.md
+!/README-DEV.md
