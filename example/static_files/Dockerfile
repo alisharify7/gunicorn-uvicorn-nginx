@@ -1,9 +1,11 @@
-FROM alisharify7/gunicorn-uvicorn-nginx:latest
+ARG BASE_IMAGE=alisharify7/gunicorn-uvicorn-nginx:latest
+FROM ${BASE_IMAGE}
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
-COPY . .
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY main.py ./
+COPY static ./static
 
 # Build and run
 # docker build -t static-files-example .

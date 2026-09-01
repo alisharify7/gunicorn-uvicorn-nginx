@@ -15,13 +15,13 @@
         <button onclick="checkHealth()">Check Health</button>
         <p id="result"></p>
     </div>
-    
+
     <script>
         function checkHealth() {
             fetch('/api/health')
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('result').innerText = 
+                    document.getElementById('result').innerText =
                         'Status: ' + data.status;
                 });
         }

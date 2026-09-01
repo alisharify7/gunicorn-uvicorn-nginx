@@ -1,12 +1,13 @@
-FROM alisharify7/gunicorn-uvicorn-nginx:latest
+ARG BASE_IMAGE=alisharify7/gunicorn-uvicorn-nginx:latest
+FROM ${BASE_IMAGE}
 
-ENV GUNICORN_WORKERS=4
-ENV GUNICORN_THREADS=8
+# This demo uses process-local memory, so keep it on one worker.
+ENV GUNICORN_WORKERS=1
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
-COPY . .
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY main.py ./
 
 # Build and run
 # docker build -t fastapi-example .

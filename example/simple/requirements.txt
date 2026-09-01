@@ -1,5 +1,1 @@
-fastapi
-ipython # just for test
-flask-captcha2 # just for test :)))
-py-smtper # just for test :)))
-django
+fastapi==0.141.1

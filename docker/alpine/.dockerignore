@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!custom.conf
+!main.py
+!nginx.conf
+!requirements.txt
+!start.sh

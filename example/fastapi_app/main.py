@@ -3,12 +3,11 @@ FastAPI example with database and API endpoints
 """
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List
 
 app = FastAPI(title="FastAPI Example")
 
 # Sample database (in-memory)
-users_db = []
+users_db: list["User"] = []
 
 class User(BaseModel):
     id: int
@@ -23,7 +22,7 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-@app.get("/users", response_model=List[User])
+@app.get("/users", response_model=list[User])
 def get_users():
     return users_db
 

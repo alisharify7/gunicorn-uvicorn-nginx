@@ -1,0 +1,5 @@
+# Distribution package versions are coupled to the already pinned Nginx base
+# image tags; pinning them again makes routine base-image security updates fail.
+ignored:
+  - DL3008
+  - DL3018

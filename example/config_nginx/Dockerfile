@@ -1,9 +1,9 @@
-# simle docker file without any custom config
-FROM  alisharify7/gunicorn-uvicorn-nginx:alpine-1.0.0
+ARG BASE_IMAGE=alisharify7/gunicorn-uvicorn-nginx:alpine-latest
+FROM ${BASE_IMAGE}
 
-COPY add_header.conf /etc/nginx/conf.d/
+COPY add_header.conf /etc/nginx/server.d/
 
 WORKDIR /app
-COPY requirements.txt .
-COPY . .
-RUN pip3 install -r requirements.txt
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY main.py ./

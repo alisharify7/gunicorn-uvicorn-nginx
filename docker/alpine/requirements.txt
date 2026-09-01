@@ -1,2 +1,14 @@
-pip
-fastapi
+anyio==4.14.2
+click==8.5.0
+gunicorn==26.0.0
+h11==0.16.0
+httptools==0.8.0
+idna==3.19
+packaging==26.3
+python-dotenv==1.2.3
+PyYAML==6.0.3
+uvicorn[standard]==0.52.4
+uvicorn-worker==0.4.0
+uvloop==0.22.1
+watchfiles==1.2.0
+websockets==17.1
