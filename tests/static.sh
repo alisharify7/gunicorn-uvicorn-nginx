@@ -126,11 +126,68 @@ else
     printf 'SKIP: ShellCheck is not installed\n'
 fi
 
+for executable_file in \
+    docker/build.sh \
+    docker/main/start.sh \
+    docker/alpine/start.sh \
+    tests/static.sh \
+    tests/docker-smoke.sh \
+    tests/examples-smoke.sh; do
+    executable_mode=$(git ls-files --stage -- "$executable_file" | awk 'NR == 1 { print $1 }')
+    if [ "$executable_mode" != 100755 ]; then
+        fail "executable script must be committed with mode 100755: ${executable_file}"
+    fi
+done
+pass 'repository executable modes'
+
 assert_contains '^\*\.md$' .gitignore 'all Markdown files must be ignored by default'
 assert_contains '^!/README\.md$' .gitignore 'the root README must remain publishable'
-if grep -Eq '\]\([^)]*\.md([#?][^)]*)?\)' README.md; then
-    fail 'README.md must not link to ignored Markdown files'
+assert_contains '^!/README-DEV\.md$' .gitignore 'the maintainer guide must remain publishable'
+
+for public_markdown in README.md README-DEV.md; do
+    test -f "$public_markdown" || fail "missing public document: ${public_markdown}"
+    if git check-ignore --no-index -q -- "$public_markdown"; then
+        fail "public document is ignored: ${public_markdown}"
+    fi
+
+    markdown_links=$(grep -Eo '\]\([^)]*\.md([#?][^)]*)?\)' "$public_markdown" || :)
+    if [ -n "$markdown_links" ]; then
+        invalid_markdown_links=$(
+            printf '%s\n' "$markdown_links" |
+                grep -Ev '^\]\((\./)?README(-DEV)?\.md([#?][^)]*)?\)$' || :
+        )
+        if [ -n "$invalid_markdown_links" ]; then
+            printf 'Invalid Markdown links in %s:\n%s\n' \
+                "$public_markdown" "$invalid_markdown_links" >&2
+            fail "public document links to an ignored Markdown file: ${public_markdown}"
+        fi
+    fi
+done
+
+for local_markdown in AGENTS.md MEMORY.md PROJECT_MAP.md example/README.md; do
+    if [ -e "$local_markdown" ] && ! git check-ignore --no-index -q -- "$local_markdown"; then
+        fail "local Markdown note must remain ignored: ${local_markdown}"
+    fi
+done
+
+expected_public_markdown=$(printf '%s\n' README-DEV.md README.md)
+actual_public_markdown=$(
+    git ls-files --cached --others --exclude-standard -- '*.md' |
+        LC_ALL=C sort
+)
+if [ "$actual_public_markdown" != "$expected_public_markdown" ]; then
+    printf 'Public Markdown files:\n%s\n' "$actual_public_markdown" >&2
+    fail 'only README.md and README-DEV.md may be published'
 fi
+
+assert_contains \
+    '\]\((\./)?README-DEV\.md([#?][^)]*)?\)' \
+    README.md \
+    'README.md must link to the maintainer guide'
+assert_contains \
+    '\]\((\./)?README\.md([#?][^)]*)?\)' \
+    README-DEV.md \
+    'README-DEV.md must link back to the user guide'
 pass 'public Markdown policy'
 
 pass 'all static checks'
